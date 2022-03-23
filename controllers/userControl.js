@@ -10,7 +10,7 @@ const userControl = {
             const { name, email, phone, password } = req.body;
 
             const user = await Users.findOne({ email })
-            if (user) return res.status(400).json({ message: "This Email Already Exists." })
+            if (user) return res.status(400).json({ message: "This Email already exists" })
 
             if (password.length < 5)
                 return res.status(400).json({ message: "Password must be atleast 5 characters" })
@@ -28,13 +28,15 @@ const userControl = {
             const accesstoken = createAccessToken({id : newUser._id})
             const refreshtoken = createRefreshToken({id : newUser._id})
 
-            res.cookie("refreshtoken", refreshtoken, {
-                httpOnly : true,
-                path : "/user/refresh_token"
+            
+            res.cookie('refreshtoken', refreshtoken, {
+                httpOnly: true,
+                path: '/user/refresh_token',
+                maxAge: 7*24*60*60*1000 // 7days
             })
+
             res.json({accesstoken})
 
-            //res.json({ message : "Registration Successful" })
 
         } catch (error) {
             return res.status(500).json({ message: error.message })
@@ -53,10 +55,12 @@ const userControl = {
             const accesstoken = createAccessToken({id : user._id})
             const refreshtoken = createRefreshToken({id : user._id})
 
-            res.cookie("refreshtoken", refreshtoken, {
-                httpOnly : true,
-                path : "/user/refresh_token"
+            res.cookie('refreshtoken', refreshtoken, {
+                httpOnly: true,
+                path: '/user/refresh_token',
+                maxAge: 7*24*60*60*1000 // 7days
             })
+
             res.json({accesstoken})
 
         } catch (error) {
@@ -66,7 +70,7 @@ const userControl = {
     logout : async (req,res) =>{
         try {
             res.clearCookie("refreshtoken", {path : "/user/refresh_token"})
-            return res.json({message : "Log Out"})
+            return res.json({message : "Logged Out"})
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
@@ -121,7 +125,7 @@ const userControl = {
 }
 
 const createAccessToken = (user) =>{
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn : "1d"})
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn : "1h"})
 }
 
 const createRefreshToken = (user) =>{
