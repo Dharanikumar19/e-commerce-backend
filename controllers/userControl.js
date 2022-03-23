@@ -22,79 +22,66 @@ const userControl = {
             })
 
             await newUser.save()
-            
 
-            //jsonwebtoken for authentication
-            const accesstoken = createAccessToken({id : newUser._id})
-            const refreshtoken = createRefreshToken({id : newUser._id})
 
-            
-            res.cookie('refreshtoken', refreshtoken, {
-                httpOnly: true,
-                path: '/user/refresh_token',
-                maxAge: 7*24*60*60*1000 // 7days
-            })
-
-            res.json({accesstoken})
-
+            res.json({ msg: "Registration Successful" })
 
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
     },
-    login: async (req,res) =>{
+    login: async (req, res) => {
         try {
-            const {email, password} = req.body;
-            const user = await Users.findOne({email})
-            if(!user) return res.status(400).json({message : "User does not exists"})
+            const { email, password } = req.body;
+            const user = await Users.findOne({ email })
+            if (!user) return res.status(400).json({ message: "User does not exists" })
 
             const isMatch = await bcrypt.compare(password, user.password)
-            if(!isMatch) return res.status(400).json({message : "Email-id or Password did not match"})
+            if (!isMatch) return res.status(400).json({ message: "Email-id or Password did not match" })
 
-            //After login
-            const accesstoken = createAccessToken({id : user._id})
-            const refreshtoken = createRefreshToken({id : user._id})
+            const refreshtoken = createRefreshToken({ id: user._id })
 
             res.cookie('refreshtoken', refreshtoken, {
                 httpOnly: true,
                 path: '/user/refresh_token',
-                maxAge: 7*24*60*60*1000 // 7days
+                maxAge: 7 * 24 * 60 * 60 // 7days
             })
 
-            res.json({accesstoken})
+            res.json({ msg: "Login Succesfull", user })
 
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
     },
-    logout : async (req,res) =>{
-        try {
-            res.clearCookie("refreshtoken", {path : "/user/refresh_token"})
-            return res.json({message : "Logged Out"})
-        } catch (error) {
-            return res.status(500).json({ message: error.message })
-        }
-    },
-    refreshToken : (req,res) =>{
+    refreshToken: (req, res) => {
         try {
             const rf_token = req.cookies.refreshtoken;
-            if(!rf_token) return res.status(400).json({message : "Please Login or Register"})
-            
-            jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) =>{
-                if(err) return res.status(400).json({message : "Please Login or Register"})
-                const accesstoken = createAccessToken({id : user.id})
-                res.json({accesstoken})
+            if (!rf_token) return res.status(400).json({ message: "Please Login or Register" })
+
+            jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+                if (err) return res.status(400).json({ message: "Please Login or Register" })
+                const accesstoken = createAccessToken({ id: user.id })
+                res.json({ accesstoken })
             })
 
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
     },
-    getUser : async (req,res) =>{
+    logout: async (req, res) => {
+        try {
+            res.clearCookie("refreshtoken", { path: "/user/refresh_token" })
+            return res.json({ message: "Logged Out" })
+        } catch (error) {
+            return res.status(500).json({ message: error.message })
+        }
+    },
+ 
+    getUser: async (req, res) => {
         try {
             const user = await Users.findById(req.user.id).select("-password")
-            
-            if(!user) return res.status(400).json({ message: "User does not exits" })
+
+            if (!user) return res.status(400).json({ message: "User does not exits" })
             res.json(user)
 
         } catch (error) {
@@ -102,21 +89,21 @@ const userControl = {
         }
     },
 
-    addCart : async (req,res) => {
+    addCart: async (req, res) => {
         try {
             const user = await Users.findById(req.user.id)
-            if(!user) return res.status(400).json({message : "User does not exist."})
-            await Users.findOneAndUpdate({_id : req.user.id} , {
-                cart : req.body.cart
+            if (!user) return res.status(400).json({ message: "User does not exist." })
+            await Users.findOneAndUpdate({ _id: req.user.id }, {
+                cart: req.body.cart
             })
-            return res.json({message : "Added to Cart"})
+            return res.json({ message: "Added to Cart" })
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
     },
-    history : async (req,res) => {
+    history: async (req, res) => {
         try {
-            const history = await Payments.find({user_id : req.user.id})
+            const history = await Payments.find({ user_id: req.user.id })
             res.json(history)
         } catch (error) {
             return res.status(500).json({ message: error.message })
@@ -124,12 +111,12 @@ const userControl = {
     }
 }
 
-const createAccessToken = (user) =>{
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn : "1h"})
+const createAccessToken = (user) => {
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" })
 }
 
-const createRefreshToken = (user) =>{
-    return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {expiresIn : "7d"})
+const createRefreshToken = (user) => {
+    return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "7d" })
 }
 
 module.exports = userControl
