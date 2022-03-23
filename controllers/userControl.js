@@ -65,17 +65,10 @@ const userControl = {
             return res.status(500).json({ message: error.message })
         }
     },
-    logout : async (req,res) =>{
-        try {
-            res.clearCookie("refreshtoken", {path : "/user/refresh_token"})
-            return res.json({message : "Log Out"})
-        } catch (error) {
-            return res.status(500).json({ message: error.message })
-        }
-    },
     refreshToken : (req,res) =>{
         try {
             const rf_token = req.cookies.refreshtoken;
+           
             if(!rf_token) return res.status(400).json({message : "Please Login or Register"})
             
             jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) =>{
@@ -84,6 +77,14 @@ const userControl = {
                 res.json({accesstoken})
             })
 
+        } catch (error) {
+            return res.status(500).json({ message: error.message })
+        }
+    },
+    logout : async (req,res) =>{
+        try {
+            res.clearCookie("refreshtoken", {path : "/user/refresh_token"})
+            return res.json({message : "Log Out"})
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
