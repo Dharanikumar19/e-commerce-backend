@@ -20,10 +20,7 @@ const userControl = {
             const newUser = new Users({
                 name, email, phone, password: hashedPassword
             })
-
             await newUser.save()
-
-
             res.json({ msg: "Registration Successful" })
 
         } catch (error) {
