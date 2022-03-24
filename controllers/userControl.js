@@ -12,28 +12,19 @@ const userControl = {
             const user = await Users.findOne({ email })
             if (user) return res.status(400).json({ message: "This Email Already Exists." })
 
-            if (password.length < 5)
-                return res.status(400).json({ message: "Password must be atleast 5 characters" })
+            if (password.length < 8)
+                return res.status(400).json({ message: "Password must be atleast 8 characters" })
 
             // Bcrypt password
             const hashedPassword = await bcrypt.hash(password, 10)
             const newUser = new Users({
                 name, email, phone, password: hashedPassword
             })
-
-            await newUser.save()
-            
-
-            //jsonwebtoken for authentication
-            const accesstoken = createAccessToken({id : newUser._id})
-            const refreshtoken = createRefreshToken({id : newUser._id})
-
-            res.cookie("refreshtoken", refreshtoken, {
-                httpOnly : true,
-                path : "/user/refreshToken",
-                maxAge: 7*24*60*60
-            })
-            res.json({accesstoken})
+            await newUser.save()      
+            const olduser = await Users.findOne({email})    
+            const accesstoken = createAccessToken({id: olduser._id})
+    
+            res.json({accesstoken}) 
 
         } catch (error) {
             return res.status(500).json({ message: error.message })
@@ -51,40 +42,15 @@ const userControl = {
 
             // If login success , create access token and refresh token
             const accesstoken = createAccessToken({id: user._id})
-            const refreshtoken = createRefreshToken({id: user._id})
-
-            res.cookie('refreshtoken', refreshtoken, {
-                httpOnly: true,
-                path: '/user/refreshToken',
-                maxAge: 7*24*60*60
-            })
-
-            res.json({accesstoken, refreshtoken})
+    
+            res.json({accesstoken})
 
         } catch (error) {
             return res.status(500).json({message: error.message})
         }
     },
 
-    refreshToken: (req, res) =>{
-        try {
-            const rf_token = req.cookies.refreshtoken;
-            
-            if(!rf_token) return res.status(400).json({msg: "Please Login or Register"})
 
-            jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) =>{
-                if(err) return res.status(400).json({msg: "Please Login or Register"})
-
-                const accesstoken = createAccessToken({id: user.id})
-
-                res.json({accesstoken})
-            })
-
-        } catch (error) {
-            return res.status(500).json({message: error.message})
-        }
-        
-    },
 
     logout: async (req, res) =>{
         try {
@@ -133,8 +99,5 @@ const createAccessToken = (user) =>{
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn : "1d"})
 }
 
-const createRefreshToken = (user) =>{
-    return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {expiresIn : "7d"})
-}
 
 module.exports = userControl
