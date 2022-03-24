@@ -30,33 +30,7 @@ const userControl = {
 
             res.cookie("refreshtoken", refreshtoken, {
                 httpOnly : true,
-                path : "/user/refresh_token",
-                maxAge: 7*24*60*60
-            })
-            res.json({accesstoken})
-
-            //res.json({ message : "Registration Successful" })
-
-        } catch (error) {
-            return res.status(500).json({ message: error.message })
-        }
-    },
-    login: async (req,res) =>{
-        try {
-            const {email, password} = req.body;
-            const user = await Users.findOne({email})
-            if(!user) return res.status(400).json({message : "User does not exists"})
-
-            const isMatch = await bcrypt.compare(password, user.password)
-            if(!isMatch) return res.status(400).json({message : "Email-id or Password did not match"})
-
-            //After login
-            const accesstoken = createAccessToken({id : user._id})
-            const refreshtoken = createRefreshToken({id : user._id})
-
-            res.cookie("refreshtoken", refreshtoken, {
-                httpOnly : true,
-                path : "/user/refresh_token",
+                path : "/user/refreshToken",
                 maxAge: 7*24*60*60
             })
             res.json({accesstoken})
@@ -65,44 +39,62 @@ const userControl = {
             return res.status(500).json({ message: error.message })
         }
     },
-    refreshToken :async (req,res) =>{
+    login: async (req, res) =>{
         try {
             const {email, password} = req.body;
+
             const user = await Users.findOne({email})
-            if(!user) return res.status(400).json({message : "User does not exists"})
+            if(!user) return res.status(400).json({msg: "User does not exist"})
 
             const isMatch = await bcrypt.compare(password, user.password)
-            if(!isMatch) return res.status(400).json({message : "Email-id or Password did not match"})
-           
-            const refreshtoken = createRefreshToken({id : user._id})
+            if(!isMatch) return res.status(400).json({msg: "Email Id or Password is Invalid"})
 
-            res.cookie("refreshtoken", refreshtoken, {
-                httpOnly : true,
-                path : "/user/refresh_token",
+            // If login success , create access token and refresh token
+            const accesstoken = createAccessToken({id: user._id})
+            const refreshtoken = createRefreshToken({id: user._id})
+
+            res.cookie('refreshtoken', refreshtoken, {
+                httpOnly: true,
+                path: '/user/refreshToken',
                 maxAge: 7*24*60*60
             })
+
+            res.json({accesstoken, refreshtoken})
+
+        } catch (error) {
+            return res.status(500).json({message: error.message})
+        }
+    },
+
+    refreshToken: (req, res) =>{
+        try {
             const rf_token = req.cookies.refreshtoken;
-           
-            if(!rf_token) return res.status(400).json({message : "Please Login or Register"})
-            
+            console.log(rf_token)
+            if(!rf_token) return res.status(400).json({msg: "Please Login or Register"})
+
             jwt.verify(rf_token, process.env.REFRESH_TOKEN_SECRET, (err, user) =>{
-                if(err) return res.status(400).json({message : "Please Login or Register"})
-                const accesstoken = createAccessToken({id : user.id})
+                if(err) return res.status(400).json({msg: "Please Login or Register"})
+
+                const accesstoken = createAccessToken({id: user.id})
+
                 res.json({accesstoken})
             })
 
         } catch (error) {
-            return res.status(500).json({ message: error.message })
+            return res.status(500).json({message: error.message})
         }
+        
     },
-    logout : async (req,res) =>{
+
+    logout: async (req, res) =>{
         try {
-            res.clearCookie("refreshtoken", {path : "/user/refresh_token"})
-            return res.json({message : "Log Out"})
+            res.clearCookie('refreshtoken', {path: '/user/refreshToken'})
+            return res.json({message: "Logged out"})
         } catch (error) {
-            return res.status(500).json({ message: error.message })
+            return res.status(500).json({message: error.message})
         }
     },
+
     getUser : async (req,res) =>{
         try {
             const user = await Users.findById(req.user.id).select("-password")
