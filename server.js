@@ -8,12 +8,25 @@ const cookieParser = require("cookie-parser");
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
-
+app.use(cors({
+    preflightContinue: true,
+    credentials: true,
+    origin: "http://localhost:3000"
+}));
 app.use(fileUpload({
-    useTempFiles: true
+    useTempFiles : true
 }))
 
+app.use(function (req, res, next) {
+    res.header('Content-Type', 'application/json;charset=UTF-8')
+    res.header('Access-Control-Allow-Credentials', true)
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept',
+        "Access-Control-Allow-Origin", "http://localhost:3000"
+    )
+    next()
+})
 
 //Routes
 app.use("/user", require("./routes/userRouter"))
@@ -25,19 +38,19 @@ app.use("/api", require("./routes/paymentRouter"))
 //Mongodb Connection
 const URL = process.env.MONGODB_URL
 mongoose.connect(URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+    useNewUrlParser : true,
+    useUnifiedTopology : true
 }, err => {
-    if (err) throw err;
+    if(err) throw err;
     console.log("database connected")
 })
 
-app.get("/", (req, res) => {
-    res.json({ message: "Server is running" })
+app.get("/", (req,res) =>{
+    res.json({message : "Server is running"})
 })
 
 
 
 const PORT = process.env.PORT || 4000
 
-app.listen(PORT, () => { console.log(`Server is running on ${PORT}`) })
+app.listen(PORT, ()=>console.log(`Server is running on ${PORT}`))
