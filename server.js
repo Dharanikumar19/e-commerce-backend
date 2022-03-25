@@ -6,25 +6,10 @@ const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 
 const app = express();
-app.use(express.json({limit :"30mb", extended : true}));
-app.use(express.urlencoded({limit : "30mb", extended : true}))
+app.use(express.json());
+app.use(cors());
 app.use(cookieParser());
-app.use(cors({
-    preflightContinue: true,
-    credentials: true,
-    origin: "https://dk-e-commerce.netlify.app"
-}));
 
-app.use(function (req, res, next) {
-    res.header('Content-Type', 'application/json;charset=UTF-8')
-    res.header('Access-Control-Allow-Credentials', true)
-    res.header(
-        'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept',
-        "Access-Control-Allow-Origin", "https://dk-e-commerce.netlify.app"
-    )
-    next()
-})
 
 app.use(fileUpload({
     useTempFiles : true
@@ -39,13 +24,13 @@ app.use("/api", require("./routes/paymentRouter"))
 
 
 //Mongodb Connection
-const URL = process.env.MONGODB_URL
-mongoose.connect(URL, {
+const URI = process.env.MONGODB_URL
+mongoose.connect(URI, {
     useNewUrlParser : true,
     useUnifiedTopology : true
 }, err => {
     if(err) throw err;
-    console.log("database connected")
+    console.log("database connected successfully")
 })
 
 app.get("/", (req,res) =>{
