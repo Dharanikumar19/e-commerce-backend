@@ -51,6 +51,6 @@ app.get("/", (req,res) =>{
 
 
 
-const PORT = process.env.PORT || 4000
+const port = process.env.PORT || 4000
 
-app.listen(PORT, ()=>console.log(`Server is running on ${PORT}`))
+app.listen(port, () => console.log('server started on port', port))
