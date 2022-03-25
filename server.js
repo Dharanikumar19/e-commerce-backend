@@ -6,16 +6,14 @@ const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 
 const app = express();
-app.use(express.json());
+app.use(express.json({limit :"30mb", extended : true}));
+app.use(express.urlencoded({limit : "30mb", extended : true}))
 app.use(cookieParser());
 app.use(cors({
     preflightContinue: true,
     credentials: true,
     origin: "https://dk-e-commerce.netlify.app"
 }));
-app.use(fileUpload({
-    useTempFiles : true
-}))
 
 app.use(function (req, res, next) {
     res.header('Content-Type', 'application/json;charset=UTF-8')
@@ -27,6 +25,11 @@ app.use(function (req, res, next) {
     )
     next()
 })
+
+app.use(fileUpload({
+    useTempFiles : true
+}))
+
 
 //Routes
 app.use("/user", require("./routes/userRouter"))
