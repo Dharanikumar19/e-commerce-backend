@@ -11,7 +11,7 @@ app.use(cookieParser());
 app.use(cors({
     preflightContinue: true,
     credentials: true,
-    origin: "http://localhost:3000"
+    origin: "https://dk-e-commerce.netlify.app"
 }));
 app.use(fileUpload({
     useTempFiles : true
@@ -23,7 +23,7 @@ app.use(function (req, res, next) {
     res.header(
         'Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept',
-        "Access-Control-Allow-Origin", "http://localhost:3000"
+        "Access-Control-Allow-Origin", "https://dk-e-commerce.netlify.app"
     )
     next()
 })
