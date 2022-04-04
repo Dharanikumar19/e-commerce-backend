@@ -40,7 +40,7 @@ const userControl = {
             const isMatch = await bcrypt.compare(password, user.password)
             if(!isMatch) return res.status(400).json({msg: "Email Id or Password is Invalid"})
 
-            // If login success , create access token and refresh token
+            // If login success , create access token 
             const accesstoken = createAccessToken({id: user._id})
     
             res.json({accesstoken})
