@@ -51,7 +51,6 @@ const userControl = {
     },
 
 
-
     logout: async (req, res) =>{
         try {
             res.clearCookie('refreshtoken', {path: '/user/refreshToken'})
@@ -85,6 +84,7 @@ const userControl = {
             return res.status(500).json({ message: error.message })
         }
     },
+
     history : async (req,res) => {
         try {
             const history = await Payments.find({user_id : req.user.id})
